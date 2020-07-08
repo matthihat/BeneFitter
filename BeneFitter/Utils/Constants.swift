@@ -22,6 +22,15 @@ let TOP_CHALLENGE_IDENTIFIER = 1
 enum TypeOfChallenge: String {
     case mostCaloriesBurnt
     case maxSteps
+    
+    var progress: Int {
+        switch self {
+        case .mostCaloriesBurnt:
+            return 0
+        default:
+            return 0
+        }
+    }
 }
 
 enum CharityOrganization: String {

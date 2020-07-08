@@ -28,7 +28,10 @@ class TopChallengeCell: UICollectionViewCell {
                                              challengeGoal: challengeGoal,
                                              duration: Duration.twentyFourHours,
                                              charityOrganization: charityOrganization,
-                                             bet: challengeBet, userHasJoined: false)
+                                             bet: challengeBet,
+                                             userHasJoined: false,
+                                             progress: 0,
+                                             goal: 500)
     
     override var isSelected: Bool {
         didSet {

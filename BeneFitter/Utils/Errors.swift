@@ -36,6 +36,8 @@ enum ChallengeError: LocalizedError {
     case invalidDuration
     case invalidStartDate
     case invalidIsTopChallenge
+    case invalidProgress
+    case invalidGoal
     
     var errorDescription: String? {
         switch self {
@@ -53,6 +55,10 @@ enum ChallengeError: LocalizedError {
             return "Error invalid start date"
         case .invalidIsTopChallenge:
             return "Error invalid top challenge description in database"
+        case .invalidProgress:
+            return "Error invalid progress in database"
+        case .invalidGoal:
+            return "Error invalid goal in database"
         }
     }
 }

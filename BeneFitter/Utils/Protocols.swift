@@ -17,6 +17,8 @@ protocol TopChallengeInterface {
     var duration: Duration { get }
     var charityOrganization: CharityOrganization { get }
     var bet: ChallengeGoal { get }
+    var progress: Int { get set }
+    var goal: Int { get }
 }
 
 protocol SignUpDelegate: class {

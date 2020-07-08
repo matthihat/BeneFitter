@@ -19,4 +19,6 @@ struct TopChallengeModel: TopChallengeInterface {
     let bet: ChallengeGoal
     var userHasJoined: Bool
     let isTopChallenge = true
+    var progress: Int
+    let goal: Int
 }

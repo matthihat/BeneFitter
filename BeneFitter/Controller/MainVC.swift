@@ -150,6 +150,8 @@ extension TopChallengeCVDelegateAndDataSource: TopChallengeCellDelegate {
                                       challengeType: challenge.typeOfChallenge,
                                       duration: challenge.duration,
                                       startDate: startDate,
+                                      progress: challenge.progress,
+                                      goal: challenge.goal,
                                       charityOrganization: challenge.charityOrganization,
                                       isTopChallenge: challenge.isTopChallenge,
                                       bettingAmount: challenge.bet.topChallengeBet)

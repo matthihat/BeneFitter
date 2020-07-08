@@ -44,10 +44,16 @@ struct Challenge: ChallengeInterface {
             
         guard let isTopChallenge = dict["is_top_challenge"] as? Bool else { throw ChallengeError.invalidIsTopChallenge }
         
+        guard let progress = dict["progress"] as? Int else { throw ChallengeError.invalidProgress }
+        
+        guard let goal = dict["goal"] as? Int else { throw ChallengeError.invalidGoal }
+        
         let challenge = SelfChallenge(challengeId: challengeId,
                                       challengeType: challengeType,
                                       duration: duration,
                                       startDate: startDate,
+                                      progress: progress,
+                                      goal: goal,
                                       charityOrganization: charityOrganization,
                                       isTopChallenge: isTopChallenge,
                                       bettingAmount: bettingAmount)
@@ -63,16 +69,23 @@ protocol SelfChallengeInterface {
     var endDate: Date { get}
     var charityOrganization: CharityOrganization { get }
     var bettingAmount: Int { get }
+    var progress: Int { get }
+    var goal: Int { get }
     
     func postChallenge(completion: @escaping (Result<Bool, Error>) -> Void)
+    
+    mutating func updateProgress(newProgress: Int, completion: @escaping(Result<Bool, Error>) -> Void)
     
 }
 
 struct SelfChallenge: SelfChallengeInterface {
-    var challengeId: String
-    var challengeType: TypeOfChallenge
-    var duration: Duration
-    var startDate: Date
+    
+    let challengeId: String
+    let challengeType: TypeOfChallenge
+    let duration: Duration
+    let startDate: Date
+    internal var progress: Int
+    let goal: Int
     
     var endDate: Date {
         let newDate = startDate
@@ -112,7 +125,9 @@ struct SelfChallenge: SelfChallengeInterface {
                                     "end_date" : endDateString,
                                     "charity_organization" : charityOrganization.rawValue,
                                     "betting_amount" : bettingAmount,
-                                    "is_top_challenge" : isTopChallenge
+                                    "is_top_challenge" : isTopChallenge,
+                                    "progress" : progress,
+                                    "goal" : goal
                                     ]
         
         let charityOrganizationUploadValues: [String : Any] =
@@ -168,6 +183,22 @@ struct SelfChallenge: SelfChallengeInterface {
                 
                 completion(.success(true))
             }
+        }
+    }
+    
+//    update progress and also update in database
+    mutating func updateProgress(newProgress: Int, completion: @escaping (Result<Bool, Error>) -> Void) {
+        
+        progress = newProgress
+        
+        REF_SELF_CHALLENGES.child(challengeId).child("progress").setValue(progress) { (err, ref) in
+            
+            if let error = err {
+                completion(.failure(error))
+                return
+            }
+            
+            completion(.success(true))
         }
     }
     

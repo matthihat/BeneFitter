@@ -112,3 +112,7 @@ struct ChallengeService {
         }
     }
 }
+
+struct HKService {
+    
+}
