@@ -37,8 +37,8 @@
 		187EF7AC24B5CD3A007C402A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 187EF7AA24B5CD3A007C402A /* Main.storyboard */; };
 		187EF7AE24B5CD3C007C402A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 187EF7AD24B5CD3C007C402A /* Assets.xcassets */; };
 		187EF7B124B5CD3C007C402A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 187EF7AF24B5CD3C007C402A /* LaunchScreen.storyboard */; };
-		187EF7BC24B5CD3C007C402A /* BeneFitterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187EF7BB24B5CD3C007C402A /* BeneFitterTests.swift */; };
-		187EF7C724B5CD3C007C402A /* BeneFitterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187EF7C624B5CD3C007C402A /* BeneFitterUITests.swift */; };
+		18D0BC3624B5E2500032A4F0 /* Challenge_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D0BC3524B5E2500032A4F0 /* Challenge_Tests.swift */; };
+		18D0BC3A24B5EB380032A4F0 /* MockDict.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D0BC3924B5EB380032A4F0 /* MockDict.swift */; };
 		18D7E3F124B5DA51000E43A2 /* MainVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D7E3F024B5DA51000E43A2 /* MainVC.swift */; };
 		18D7E3F224B5DA51000E43A2 /* MainVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D7E3F024B5DA51000E43A2 /* MainVC.swift */; };
 		18D7E3F324B5DA51000E43A2 /* MainVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D7E3F024B5DA51000E43A2 /* MainVC.swift */; };
@@ -134,11 +134,11 @@
 		187EF7B024B5CD3C007C402A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		187EF7B224B5CD3C007C402A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		187EF7B724B5CD3C007C402A /* BeneFitterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeneFitterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		187EF7BB24B5CD3C007C402A /* BeneFitterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeneFitterTests.swift; sourceTree = "<group>"; };
 		187EF7BD24B5CD3C007C402A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		187EF7C224B5CD3C007C402A /* BeneFitterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeneFitterUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		187EF7C624B5CD3C007C402A /* BeneFitterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeneFitterUITests.swift; sourceTree = "<group>"; };
 		187EF7C824B5CD3C007C402A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		18D0BC3524B5E2500032A4F0 /* Challenge_Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Challenge_Tests.swift; sourceTree = "<group>"; };
+		18D0BC3924B5EB380032A4F0 /* MockDict.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDict.swift; sourceTree = "<group>"; };
 		18D7E3F024B5DA51000E43A2 /* MainVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainVC.swift; sourceTree = "<group>"; };
 		18D7E3F524B5DA8E000E43A2 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		18D7E3F624B5DA8F000E43A2 /* CustomImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomImageView.swift; sourceTree = "<group>"; };
@@ -246,7 +246,7 @@
 		187EF7BA24B5CD3C007C402A /* BeneFitterTests */ = {
 			isa = PBXGroup;
 			children = (
-				187EF7BB24B5CD3C007C402A /* BeneFitterTests.swift */,
+				18D0BC3124B5E1F60032A4F0 /* Model */,
 				187EF7BD24B5CD3C007C402A /* Info.plist */,
 			);
 			path = BeneFitterTests;
@@ -255,10 +255,18 @@
 		187EF7C524B5CD3C007C402A /* BeneFitterUITests */ = {
 			isa = PBXGroup;
 			children = (
-				187EF7C624B5CD3C007C402A /* BeneFitterUITests.swift */,
 				187EF7C824B5CD3C007C402A /* Info.plist */,
 			);
 			path = BeneFitterUITests;
+			sourceTree = "<group>";
+		};
+		18D0BC3124B5E1F60032A4F0 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				18D0BC3524B5E2500032A4F0 /* Challenge_Tests.swift */,
+				18D0BC3924B5EB380032A4F0 /* MockDict.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		18D7E3EF24B5DA30000E43A2 /* Controller */ = {
@@ -676,7 +684,6 @@
 				18D7E43224B5DB6B000E43A2 /* TopChallengeCell.swift in Sources */,
 				18D7E42A24B5DAED000E43A2 /* SearchTVC.swift in Sources */,
 				18D7E41624B5DABC000E43A2 /* User.swift in Sources */,
-				187EF7BC24B5CD3C007C402A /* BeneFitterTests.swift in Sources */,
 				18D7E41C24B5DABC000E43A2 /* TopChallengeModel.swift in Sources */,
 				18D7E43824B5DB6B000E43A2 /* SearchUserCell.swift in Sources */,
 				186AC07724B5D174001CBF0F /* MainCollectionView.swift in Sources */,
@@ -686,8 +693,10 @@
 				18D7E42524B5DAD8000E43A2 /* LoginVC.swift in Sources */,
 				18D7E43524B5DB6B000E43A2 /* ConfirmButton.swift in Sources */,
 				18D7E3FD24B5DA93000E43A2 /* Extensions.swift in Sources */,
+				18D0BC3624B5E2500032A4F0 /* Challenge_Tests.swift in Sources */,
 				18D7E40C24B5DA93000E43A2 /* Constants.swift in Sources */,
 				18D7E42224B5DAD8000E43A2 /* SignUpVC.swift in Sources */,
+				18D0BC3A24B5EB380032A4F0 /* MockDict.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -706,7 +715,6 @@
 				18D7E43324B5DB6B000E43A2 /* TopChallengeCell.swift in Sources */,
 				18D7E42B24B5DAED000E43A2 /* SearchTVC.swift in Sources */,
 				18D7E41724B5DABC000E43A2 /* User.swift in Sources */,
-				187EF7C724B5CD3C007C402A /* BeneFitterUITests.swift in Sources */,
 				18D7E41D24B5DABC000E43A2 /* TopChallengeModel.swift in Sources */,
 				18D7E43924B5DB6B000E43A2 /* SearchUserCell.swift in Sources */,
 				186AC07824B5D174001CBF0F /* MainCollectionView.swift in Sources */,
