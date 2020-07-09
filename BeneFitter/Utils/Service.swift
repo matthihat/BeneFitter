@@ -8,6 +8,7 @@
 
 import Foundation
 import Firebase
+import HealthKit
 
 struct UserService {
     
@@ -114,5 +115,28 @@ struct ChallengeService {
 }
 
 struct HKService {
-    
+    //    get steps since last day
+    static func getSeveralDaysStepCount(startDate: Date, endDate: Date, completion: @escaping (_ steps: Int) -> Void) {
+        let stepsQuantityType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+
+        let startDateToQuery = startDate
+        let endDateToQuery = endDate
+        
+//        let startOfDay = Calendar.current.startOfDay(for: selectedNumberOfDays)
+        let predicate = HKQuery.predicateForSamples(withStart: startDateToQuery, end: endDateToQuery, options: .strictStartDate)
+
+        let query = HKStatisticsQuery(quantityType: stepsQuantityType, quantitySamplePredicate: predicate, options: .cumulativeSum) { (_, result, error) in
+            guard let result = result, let sum = result.sumQuantity() else {
+                print("Failed to fetch steps = \(error?.localizedDescription ?? "N/A")")
+                completion(0)
+                return
+            }
+
+            DispatchQueue.main.async {
+                completion(Int(sum.doubleValue(for: HKUnit.count())))
+            }
+        }
+
+        HKHealthStore().execute(query)
+    }
 }

@@ -78,10 +78,13 @@ class MainVC: UIViewController {
         
         configureTopCollectionView()
         
+        authorizeHealthKit()
+        
     }
     
     func configureNavBar() {
         self.prefersLargeNCTitles()
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(handleRefresh))
     }
     
     func configureView() {
@@ -111,6 +114,23 @@ class MainVC: UIViewController {
             }
             
         }
+    }
+    
+    func authorizeHealthKit() {
+        HealthKitAssistant.authorizeHealthKit { (result) in
+            
+            switch result {
+            case .success(_):
+                Void()
+            case .failure(let error):
+                SVProgressHUD.showError(withStatus: error.localizedDescription)
+            }
+        }
+    }
+    
+//    MARK: - Handlers
+    @objc func handleRefresh() {
+        
     }
 }
 
