@@ -497,4 +497,27 @@ extension UIAlertController {
     }
 }
 
+extension Notification.Name {
+    
+    static var hasNotEntered: Notification.Name {
+           return .init("SelfChallenge.hasNotEntered")
+       }
+    
+    static var didEnter: Notification.Name {
+        return .init("SelfChallenge.didEnter")
+    }
+    
+    static var alreadyEntered: Notification.Name {
+           return .init("SelfChallenge.alreadyEntered")
+       }
+    
+    static var didFinish: Notification.Name {
+        return .init("SelfChallenge.didFinish")
+    }
+    
+    static var didUpdateProgress: Notification.Name {
+        return .init("SelfChallenge.didUpdateProgress")
+    }
+}
+
 

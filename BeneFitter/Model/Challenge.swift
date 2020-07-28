@@ -18,6 +18,7 @@ protocol ChallengeInterface {
 
 struct Challenge: ChallengeInterface {
     let challengeId: String
+    let notificationCenter = NotificationCenter()
     
     func selfChallenge(dict: [String : Any]) throws -> SelfChallenge {
         
@@ -48,15 +49,19 @@ struct Challenge: ChallengeInterface {
         
         guard let goal = dict["goal"] as? Int else { throw ChallengeError.invalidGoal }
         
-        let challenge = SelfChallenge(challengeId: challengeId,
-                                      challengeType: challengeType,
-                                      duration: duration,
-                                      startDate: startDate,
-                                      progress: progress,
-                                      goal: goal,
-                                      charityOrganization: charityOrganization,
-                                      isTopChallenge: isTopChallenge,
-                                      bettingAmount: bettingAmount)
+        
+        
+        let challenge = SelfChallenge(challengeId,
+                                      challengeType,
+                                      duration,
+                                      startDate,
+                                      progress,
+                                      goal,
+                                      NotificationCenter.default,
+                                      charityOrganization,
+                                      isTopChallenge,
+                                      bettingAmount)
+        
         return challenge
     }
 }
@@ -71,6 +76,7 @@ protocol SelfChallengeInterface {
     var bettingAmount: Int { get }
     var progress: Int { get }
     var goal: Int { get }
+    var notificationCenter: NotificationCenter { get }
     
     func postChallenge(completion: @escaping (Result<Bool, Error>) -> Void)
     
@@ -79,26 +85,55 @@ protocol SelfChallengeInterface {
 }
 
 struct SelfChallenge: SelfChallengeInterface {
-    
+
+        
+//    MARK: - Properties
     let challengeId: String
     let challengeType: TypeOfChallenge
     let duration: Duration
     let startDate: Date
-    internal var progress: Int
-    let goal: Int
-    
     var endDate: Date {
         let newDate = startDate
         let endDate = newDate.addingTimeInterval(duration.durationInSeconds)
         return endDate
     }
+    var progress: Int = 0
+    let goal: Int
+    let notificationCenter: NotificationCenter
+    var state = State.hasNotEntered {
+        didSet {
+            stateDidChange()
+        }
+    }
     
     var charityOrganization: CharityOrganization
-    
     var isTopChallenge: Bool
-    
     var bettingAmount: Int
     
+    init(_ challengeId: String,
+         _ challengeType: TypeOfChallenge,
+         _ duration: Duration,
+         _ startDate: Date,
+         _ progress: Int,
+         _ goal: Int,
+         _ notificationCenter: NotificationCenter = .default,
+         _ charityOrganization: CharityOrganization,
+         _ isTopChallenge: Bool,
+         _ bettingAmount: Int) {
+        self.challengeId = challengeId
+        self.challengeType = challengeType
+        self.duration = duration
+        self.startDate = startDate
+        self.progress = progress
+        self.goal = goal
+        self.notificationCenter = notificationCenter
+        self.charityOrganization = charityOrganization
+        self.isTopChallenge = isTopChallenge
+        self.bettingAmount = bettingAmount
+    }
+
+    
+//    MARK: - Helper functions
     func postChallenge(completion: @escaping (Result<Bool, Error>) -> Void) {
         
         let group = DispatchGroup()
@@ -191,7 +226,7 @@ struct SelfChallenge: SelfChallengeInterface {
         
         progress = newProgress
         
-        REF_SELF_CHALLENGES.child(challengeId).child("progress").setValue(progress) { (err, ref) in
+        REF_SELF_CHALLENGES.child(self.challengeId).child("progress").setValue(newProgress) { (err, ref) in
             
             if let error = err {
                 completion(.failure(error))
@@ -201,8 +236,36 @@ struct SelfChallenge: SelfChallengeInterface {
             completion(.success(true))
         }
     }
-    
-    
+}
+
+extension SelfChallenge {
+    enum State {
+        case hasNotEntered
+        case didEnter
+        case alreadyEntered
+        case didFinish
+        case didUpdateProgress
+    }
+}
+
+private extension SelfChallenge {
+    mutating func stateDidChange() {
+        
+        let challengeInfo = ["" : self]
+        
+        switch state {
+        case .hasNotEntered:
+            Void()
+        case .didEnter:
+            notificationCenter.post(name: .didEnter, object: nil, userInfo: challengeInfo)
+        case .alreadyEntered:
+            notificationCenter.post(name: .alreadyEntered, object: nil, userInfo: challengeInfo)
+        case .didFinish:
+            notificationCenter.post(name: .didFinish, object: nil, userInfo: challengeInfo)
+        case .didUpdateProgress:
+            notificationCenter.post(name: .didUpdateProgress, object: nil, userInfo: challengeInfo)
+        }
+    }
 }
 //
 //protocol PendingChallengeInterface {

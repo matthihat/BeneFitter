@@ -115,8 +115,55 @@ struct ChallengeService {
 }
 
 struct HKService {
+    
+    static let shared = HKService()
+    
+    private enum HKServiceError: LocalizedError {
+        case failedToFetchActiveCalories
+        
+        var errorDescription: String? {
+            switch self {
+            case .failedToFetchActiveCalories:
+                return "Failed to fetch active calories from health kit"
+            }
+        }
+    }
+    
     //    get steps since last day
-    static func getSeveralDaysStepCount(startDate: Date, endDate: Date, completion: @escaping (_ steps: Int) -> Void) {
+    func getActiveCaloriesCount(since startDate: Date, to endDate: Date, completion: @escaping(Result<Double, Error>) -> Void) {
+        let energyQuantityType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!
+
+        let startDateToQuery = startDate
+        let endDateToQuery = endDate
+        
+//        let startOfDay = Calendar.current.startOfDay(for: selectedNumberOfDays)
+        let predicate = HKQuery.predicateForSamples(withStart: startDateToQuery, end: endDateToQuery, options: .strictStartDate)
+
+        let query = HKStatisticsQuery(quantityType: energyQuantityType, quantitySamplePredicate: predicate, options: .cumulativeSum) { (_, result, err) in
+            
+            if let error = err {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let result = result,
+                let sum = result.sumQuantity()
+            
+                else {
+                    completion(.failure(HKServiceError.failedToFetchActiveCalories))
+                return
+            }
+            
+            DispatchQueue.main.async {
+                completion(.success(sum.doubleValue(for: .kilocalorie())))
+            }
+        }
+
+        HKHealthStore().execute(query)
+    }
+    
+    //    get steps since last day
+    func getStepCount(startDate: Date, endDate: Date, completion: @escaping (_ steps: Int) -> Void) {
         let stepsQuantityType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
 
         let startDateToQuery = startDate

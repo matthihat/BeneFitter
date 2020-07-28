@@ -42,6 +42,7 @@ class TopChallengeCell: UICollectionViewCell {
 //    MARK: - Properties
     static let identifier = "Identifier"
     private let cornerRadius: CGFloat = 12
+    var notificationCenter: NotificationCenter
     
     private lazy var bgView: UIView = {
         let view = UIView()
@@ -119,11 +120,14 @@ class TopChallengeCell: UICollectionViewCell {
     
 //    MARK: - Init
     override init(frame: CGRect) {
+        self.notificationCenter = .default
         super.init(frame: frame)
         
         configureUI()
         
-        checkIfUserAlreadyHasJoinedTopChallenge()
+        createObservers()
+        
+//        checkIfUserAlreadyHasJoinedTopChallenge()
         
         configureLabels()
         
@@ -227,30 +231,36 @@ class TopChallengeCell: UICollectionViewCell {
         bgView.layer.insertSublayer(gradientLayer, at: 0)
     }
     
-    public func didJoinTopChallenge() {
+    private func createObservers() {
+        notificationCenter.addObserver(self, selector: #selector(didJoinTopChallenge), name: .alreadyEntered, object: nil)
+        
+    }
+    
+    @objc public func didJoinTopChallenge() {
         topChallenge.userHasJoined = true
         joinButton.isEnabled = false
         joinButton.setTitle("Joined ✓", for: .normal)
         joinButton.backgroundColor = .systemGreen
     }
     
-    private func checkIfUserAlreadyHasJoinedTopChallenge() {
-        
-        guard let currentUid = Auth.auth().currentUser?.uid else { return }
-        
-        ChallengeService.shared.fetchUsersActiveSelfChallenges(userUid: currentUid) { (result) in
-            
-            switch result {
-            case .success(let selfChallenge):
-                if selfChallenge.isTopChallenge {
-                    self.didJoinTopChallenge()
-                }
-  
-            case .failure(let error):
-                SVProgressHUD.showError(withStatus: error.localizedDescription)
-            }
-        }
-    }
+//    private func checkIfUserAlreadyHasJoinedTopChallenge() {
+//
+//        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+//
+//        ChallengeService.shared.fetchUsersActiveSelfChallenges(userUid: currentUid) { (result) in
+//
+//            switch result {
+//            case .success(var selfChallenge):
+//                if selfChallenge.isTopChallenge {
+//                    self.didJoinTopChallenge()
+//                    selfChallenge.state = .alreadyEntered
+//                }
+//
+//            case .failure(let error):
+//                SVProgressHUD.showError(withStatus: error.localizedDescription)
+//            }
+//        }
+//    }
     
 //    MARK: - Handlers
     @objc func didPressJoinButton() {

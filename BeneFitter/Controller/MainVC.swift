@@ -121,7 +121,7 @@ class MainVC: UIViewController {
             
             switch result {
             case .success(_):
-                Void()
+                print("DEBUG successfully authorized healthkit")
             case .failure(let error):
                 SVProgressHUD.showError(withStatus: error.localizedDescription)
             }
@@ -131,15 +131,33 @@ class MainVC: UIViewController {
 //    MARK: - Handlers
     @objc func handleRefresh() {
         
+        topChallengeCVDelegateAndDataSource?.didPressRefresh()
     }
 }
 
 class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     let collectionView: UICollectionView
+    var selfChallenge: SelfChallenge?
+    let notificationCenter: NotificationCenter
+    let challengeService: ChallengeService
+    let healthKitService: HKService
     
-    init(_ collectionView: UICollectionView) {
+    init(_ collectionView: UICollectionView,
+         _ notificationCenter: NotificationCenter = .default,
+         _ challengeService: ChallengeService = .shared,
+         _ healthKitService: HKService = .shared) {
         self.collectionView = collectionView
+        self.notificationCenter = notificationCenter
+        self.challengeService = challengeService
+        self.healthKitService = healthKitService
+        
+        super.init()
+        
+        notificationCenter.addObserver(self, selector: #selector(userHasJoinedTopChallenge), name: .didEnter, object: nil)
+        
+        checkIfUserAlreadyHasJoinedTopChallenge()
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -158,28 +176,100 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
         
         return CGSize(width: 320, height: 220)
     }
+    
+    @objc func userHasJoinedTopChallenge(_ notification: Notification) {
+        
+        guard let item = notification.userInfo as? [String : SelfChallenge] else { return }
+        guard let challenge = item.values.first else { return }
+        selfChallenge = challenge
+        
+    }
+    
+      private func checkIfUserAlreadyHasJoinedTopChallenge() {
+          
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        
+          challengeService.fetchUsersActiveSelfChallenges(userUid: currentUid) { (result) in
+              
+              switch result {
+              case .success(var selfChallenge):
+                  if selfChallenge.isTopChallenge {
+                    self.selfChallenge = selfChallenge
+                      selfChallenge.state = .alreadyEntered
+                  }
+    
+              case .failure(let error):
+                  SVProgressHUD.showError(withStatus: error.localizedDescription)
+              }
+          }
+      }
+    
+//    MARK TODO check if user already has joined, move function from cell to here
+    
+    public func didPressRefresh() {
+        
+        var newProgress: Int?
+        let group = DispatchGroup()
+        
+        guard let startDate = selfChallenge?.startDate,
+            let endDate = selfChallenge?.endDate else { return }
+        
+        group.enter()
+        
+       healthKitService.getActiveCaloriesCount(since: startDate,
+                                                to: endDate) { (result) in
+                                                    
+            switch result {
+            case .success(let activeCalories):
+                print("DEBUG ", activeCalories)
+                newProgress = Int(activeCalories)
+                group.leave()
+                
+            case .failure(let error):
+                SVProgressHUD.showError(withStatus: error.localizedDescription)
+            }
+        }
+        
+        group.notify(queue: .main) {
+            
+            guard let progress = newProgress else { return }
+            
+            self.selfChallenge?.updateProgress(newProgress: progress, completion: { (result) in
+                switch result {
+                    
+                case .success(let success):
+                    print("DEBUG success!", success)
+                case .failure(let error):
+                    SVProgressHUD.showError(withStatus: error.localizedDescription)
+                }
+            })
+        }
+    }
 }
 
 extension TopChallengeCVDelegateAndDataSource: TopChallengeCellDelegate {
-    func didPressJoinChallenge(in cell: TopChallengeCell, selected challenge: TopChallengeModel) {
+    func didPressJoinChallenge(in cell: TopChallengeCell,
+                               selected challenge: TopChallengeModel) {
         
         let challengeId = UUID().uuidString
         let startDate = Date()
         
-        let challenge = SelfChallenge(challengeId: challengeId,
-                                      challengeType: challenge.typeOfChallenge,
-                                      duration: challenge.duration,
-                                      startDate: startDate,
-                                      progress: challenge.progress,
-                                      goal: challenge.goal,
-                                      charityOrganization: challenge.charityOrganization,
-                                      isTopChallenge: challenge.isTopChallenge,
-                                      bettingAmount: challenge.bet.topChallengeBet)
+        selfChallenge = SelfChallenge(challengeId,
+                                      challenge.typeOfChallenge,
+                                      challenge.duration,
+                                      startDate,
+                                      challenge.progress,
+                                      challenge.goal,
+                                      NotificationCenter.default,
+                                      challenge.charityOrganization,
+                                      challenge.isTopChallenge,
+                                      challenge.bet.topChallengeBet)
         
-        challenge.postChallenge { (result) in
+        selfChallenge?.postChallenge { (result) in
             switch result {
             case .success(_):
                 cell.didJoinTopChallenge()
+                self.selfChallenge?.state = .didEnter
             case .failure(let error):
                 SVProgressHUD.showError(withStatus: error.localizedDescription)
                 cell.joinButton.isEnabled = true
