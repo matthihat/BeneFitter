@@ -158,6 +158,8 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
         
         checkIfUserAlreadyHasJoinedTopChallenge()
         
+        checkIfTopChallengeIsJoinedOrNot()
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -181,7 +183,7 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
         
         guard let item = notification.userInfo as? [String : SelfChallenge] else { return }
         guard let challenge = item.values.first else { return }
-        selfChallenge = challenge
+//        selfChallenge = challenge
         
     }
     
@@ -204,6 +206,27 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
           }
       }
     
+    private func checkIfTopChallengeIsJoinedOrNot() {
+        
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        
+        challengeService.checkIfUserHasJoinedTopChallenge(userUid: currentUid) { (result) in
+            
+            switch result {
+            case .success(var selfChallenge):
+                if selfChallenge == nil {
+                    guard let cell = self.collectionView.visibleCells.first as? TopChallengeCell else { return }
+                    cell.configureLabelsChallengeNotEntered()
+                    selfChallenge?.state = .hasNotEntered
+                } else {
+                    selfChallenge?.state = .alreadyEntered
+                }
+            case .failure(let error):
+                SVProgressHUD.showError(withStatus: error.localizedDescription)
+            }
+        }
+    }
+    
 //    MARK TODO check if user already has joined, move function from cell to here
     
     public func didPressRefresh() {
@@ -221,7 +244,6 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
                                                     
             switch result {
             case .success(let activeCalories):
-                print("DEBUG ", activeCalories)
                 newProgress = Int(activeCalories)
                 group.leave()
                 
@@ -237,8 +259,8 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
             self.selfChallenge?.updateProgress(newProgress: progress, completion: { (result) in
                 switch result {
                     
-                case .success(let success):
-                    print("DEBUG success!", success)
+                case .success(_):
+                    Void()
                 case .failure(let error):
                     SVProgressHUD.showError(withStatus: error.localizedDescription)
                 }
@@ -249,21 +271,23 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
 
 extension TopChallengeCVDelegateAndDataSource: TopChallengeCellDelegate {
     func didPressJoinChallenge(in cell: TopChallengeCell,
-                               selected challenge: TopChallengeModel) {
+                               selected challenge: SelfChallenge) {
         
-        let challengeId = UUID().uuidString
-        let startDate = Date()
+        selfChallenge = challenge
         
-        selfChallenge = SelfChallenge(challengeId,
-                                      challenge.typeOfChallenge,
-                                      challenge.duration,
-                                      startDate,
-                                      challenge.progress,
-                                      challenge.goal,
-                                      NotificationCenter.default,
-                                      challenge.charityOrganization,
-                                      challenge.isTopChallenge,
-                                      challenge.bet.topChallengeBet)
+//        let challengeId = UUID().uuidString
+//        let startDate = Date()
+//
+//        selfChallenge = SelfChallenge(challengeId,
+//                                      challenge.typeOfChallenge,
+//                                      challenge.duration,
+//                                      startDate,
+//                                      challenge.progress,
+//                                      challenge.goal,
+//                                      NotificationCenter.default,
+//                                      challenge.charityOrganization,
+//                                      challenge.isTopChallenge,
+//                                      challenge.bet.topChallengeBet)
         
         selfChallenge?.postChallenge { (result) in
             switch result {

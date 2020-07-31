@@ -62,3 +62,14 @@ enum ChallengeError: LocalizedError {
         }
     }
 }
+
+enum DateError: LocalizedError {
+    case invalidDate
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidDate:
+            return "Error invalid date"
+        }
+    }
+}

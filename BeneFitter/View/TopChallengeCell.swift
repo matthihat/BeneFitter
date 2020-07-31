@@ -21,17 +21,17 @@ class TopChallengeCell: UICollectionViewCell {
     var delegate: TopChallengeCellDelegate?
     
 //    MARK: - TODO create database with top challenge, add functions to fetch top model from db. Create webpage with admin login for editing new top challenges
-    private lazy var topChallenge = TopChallengeModel(image: #imageLiteral(resourceName: "HLF-logotyp"),
-                                             titleLabel: "Hjärt- & lungfonden",
-                                             textBody: "Aid the fight against heart and lung disease by joining this challenge",
-                                             typeOfChallenge: .mostCaloriesBurnt,
-                                             challengeGoal: challengeGoal,
-                                             duration: Duration.twentyFourHours,
-                                             charityOrganization: charityOrganization,
-                                             bet: challengeBet,
-                                             userHasJoined: false,
-                                             progress: 0,
-                                             goal: 500)
+//    private lazy var topChallenge = TopChallengeModel(image: #imageLiteral(resourceName: "HLF-logotyp"),
+//                                             titleLabel: "Hjärt- & lungfonden",
+//                                             textBody: "Aid the fight against heart and lung disease by joining this challenge",
+//                                             typeOfChallenge: .mostCaloriesBurnt,
+//                                             challengeGoal: challengeGoal,
+//                                             duration: Duration.twentyFourHours,
+//                                             charityOrganization: charityOrganization,
+//                                             bet: challengeBet,
+//                                             userHasJoined: false,
+//                                             progress: 0,
+//                                             goal: 500)
     
     override var isSelected: Bool {
         didSet {
@@ -43,6 +43,7 @@ class TopChallengeCell: UICollectionViewCell {
     static let identifier = "Identifier"
     private let cornerRadius: CGFloat = 12
     var notificationCenter: NotificationCenter
+    var selfChallenge: SelfChallenge?
     
     private lazy var bgView: UIView = {
         let view = UIView()
@@ -93,6 +94,13 @@ class TopChallengeCell: UICollectionViewCell {
         return label
     }()
     
+    private let remainingTimeLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .boldSystemFont(ofSize: 16)
+        return label
+    }()
+    
     private let imageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFit
@@ -117,15 +125,33 @@ class TopChallengeCell: UICollectionViewCell {
     }()
     
     let gradientLayer = CAGradientLayer()
+    let font = UIFont.preferredFont(forTextStyle: .body)
+    
+    enum TextColors {
+        case highLight
+        case bet
+        
+        var color: UIColor {
+            switch self {
+            case .highLight:
+                return UIColor.systemRed
+            case .bet:
+                return UIColor.systemYellow
+            }
+        }
+    }
     
 //    MARK: - Init
     override init(frame: CGRect) {
         self.notificationCenter = .default
         super.init(frame: frame)
         
+        
         configureUI()
         
         createObservers()
+        
+        createDefaultTopChallenge()
         
 //        checkIfUserAlreadyHasJoinedTopChallenge()
         
@@ -156,7 +182,8 @@ class TopChallengeCell: UICollectionViewCell {
                            imageView,
                            textBody,
                            goalLabel,
-                           betLabel)
+                           betLabel,
+                           remainingTimeLabel)
         
         popularLabel.centerX(inView: bgView)
         popularLabel.anchor(top: bgView.topAnchor,
@@ -185,6 +212,10 @@ class TopChallengeCell: UICollectionViewCell {
         betLabel.anchor(top: goalLabel.bottomAnchor,
                         left: goalLabel.leftAnchor,
                         paddingTop: 4)
+        
+        remainingTimeLabel.anchor(top: betLabel.topAnchor,
+                                  right: bgView.rightAnchor,
+                                  paddingRight: 8)
 
         joinButton.centerX(inView: bgView)
         joinButton.centerYAnchor.constraint(equalTo: bgView.bottomAnchor).isActive = true
@@ -192,19 +223,17 @@ class TopChallengeCell: UICollectionViewCell {
     
 //    MARK: - TODO create get set method when top challenge is available in database
     private func configureLabels() {
-        textBody.text = topChallenge.textBody
+        textBody.text = selfChallenge?.charityOrganization.challengeInfo
         
-        let font = UIFont.preferredFont(forTextStyle: .body)
-        let highLightColor = UIColor.systemRed
         let goalAndDurationText = NSMutableAttributedString.withFont(font, "Burn")
-        let goalText = NSAttributedString.withFontAndColor(font, String(topChallenge.challengeGoal), color: highLightColor)
+        let goalText = NSAttributedString.withFontAndColor(font, selfChallenge?.charityOrganization.topChallengeGoal.description ?? "Not available", color: TextColors.highLight.color)
         let spacer = NSAttributedString(string: " ")
         let units = NSAttributedString.withFontAndText(font, ChallengeGoal.mostCaloriesBurnt.topChallengeDescription)
         let inString = NSAttributedString.withFontAndText(font, "in")
-        let duration = NSAttributedString.withFontAndColor(font, String(topChallenge.duration.durationInHours), color: highLightColor)
+        let duration = NSAttributedString.withFontAndColor(font, selfChallenge?.charityOrganization.topChallengeBet.description ?? "Not available", color: TextColors.highLight.color)
         let hours = NSAttributedString.withFontAndText(font, "h")
         let donateText = NSMutableAttributedString.withFont(font, "Donate ")
-        let bet = NSAttributedString.withFontAndColor(font, String(topChallenge.bet.topChallengeBet), color: .systemYellow)
+        let bet = NSAttributedString.withFontAndColor(font, selfChallenge?.charityOrganization.topChallengeBet.description ?? "Not available", color: .systemYellow)
         let end = NSAttributedString.withFontAndText(font, " kr if you succeed")
 
         goalAndDurationText.appendMultiple(NSAttributedStrings: spacer, goalText, spacer, units, spacer, inString, spacer, duration, spacer, hours)
@@ -232,15 +261,114 @@ class TopChallengeCell: UICollectionViewCell {
     }
     
     private func createObservers() {
-        notificationCenter.addObserver(self, selector: #selector(didJoinTopChallenge), name: .alreadyEntered, object: nil)
+        notificationCenter.addObserver(self, selector: #selector(alreadyJoinedTopChallenge(_:)), name: .alreadyEntered, object: nil)
+        
+        notificationCenter.addObserver(self, selector: #selector(configureLabelsChallengeIdle), name: .idle, object: nil)
+        
+        notificationCenter.addObserver(self, selector: #selector(configureLabelsChallengeNotEntered), name: .hasNotEntered, object: nil)
+        
+//        notificationCenter.addObserver(self, selector: #selector(configureLabelsChallengeAlreadyEntered), name: .alreadyEntered, object: nil)
         
     }
     
+    func createDefaultTopChallenge() {
+        
+        let challengeId = UUID().uuidString
+        let startDate = Date()
+        
+        selfChallenge = SelfChallenge(challengeId,
+                                      .mostCaloriesBurnt,
+                                      .twentyFourHours,
+                                        startDate,
+                                        0,
+                                        charityOrganization.topChallengeGoal,
+                                        NotificationCenter.default,
+                                        .hjartOchLungFonden,
+                                        true,
+                                        charityOrganization.topChallengeBet)
+        
+
+    }
+    
+    func configureLabelsUserHasAlreadyJoined(_ challenge: SelfChallenge) {
+        
+        let progress = challenge.progress.description
+        let formattedProgress = NSAttributedString.withFontAndColor(font, progress, color: TextColors.highLight.color)
+        let goal = challenge.goal.description
+        let formattedGoal = NSMutableAttributedString.withFont(font, goal)
+        let bet = challenge.bettingAmount.description
+        let formattedBet = NSAttributedString.withFontAndColor(font, bet, color: TextColors.bet.color)
+        var remainingTime = "Loading.."
+        
+        let progressText = NSMutableAttributedString(attributedString: formattedProgress)
+        let progrressText1 = NSAttributedString.withFontAndText(font, "/")
+        let progressText2 = NSAttributedString.withFontAndText(font, " kcal done")
+        
+        progressText.appendMultiple(NSAttributedStrings: progrressText1, formattedGoal, progressText2)
+        
+        goalLabel.attributedText = progressText
+        
+        let betText1 = NSAttributedString.withFontAndText(font, "Bet is ")
+        let betText2 = NSAttributedString.withFontAndText(font, " kr")
+        let betText = NSMutableAttributedString(attributedString: betText1)
+        betText.appendMultiple(NSAttributedStrings: formattedBet, betText2)
+        
+        betLabel.attributedText = betText
+        
+        remainingTime = calculateRemainingTime(until: challenge.endDate)
+        let remainingTime_AttrString = NSAttributedString(string: remainingTime, attributes: [NSAttributedString.Key.foregroundColor : TextColors.bet.color])
+        let remainingTimeText1 = NSMutableAttributedString(attributedString: remainingTime_AttrString)
+
+        remainingTimeLabel.attributedText = remainingTimeText1
+    }
+    
+    func calculateRemainingTime(until endDate: Date) -> String {
+        
+        let timeInterval = endDate.timeIntervalSince(Date())
+        let timeRemaining = DateComponentsFormatter.format(duration: timeInterval)
+        
+        return timeRemaining
+    }
+    
+//    MARK: - Handlers
+    @objc func configureLabelsChallengeIdle() {
+        let defaultText1 = NSMutableAttributedString.withFont(font, "Loading..")
+        let defaultText2 = NSMutableAttributedString.withFont(font, "Loading..")
+        
+        joinButton.isEnabled = false
+        joinButton.setTitle("...", for: .normal)
+        joinButton.backgroundColor = .systemGray
+        
+        goalLabel.attributedText = defaultText1
+        betLabel.attributedText = defaultText2
+    }
+    
+    @objc func configureLabelsChallengeNotEntered() {
+        joinButton.isEnabled = true
+        joinButton.setTitle("Join", for: .normal)
+        joinButton.setTitleColor(.white, for: .normal)
+        joinButton.backgroundColor = .systemRed
+    }
+    
     @objc public func didJoinTopChallenge() {
-        topChallenge.userHasJoined = true
+        
         joinButton.isEnabled = false
         joinButton.setTitle("Joined ✓", for: .normal)
         joinButton.backgroundColor = .systemGreen
+    }
+    
+    @objc func alreadyJoinedTopChallenge(_ notification: Notification) {
+        
+        guard let item = notification.userInfo as? [String : SelfChallenge] else { return }
+        guard let challenge = item.values.first else { return }
+        selfChallenge = challenge
+        
+//        topChallenge.userHasJoined = true
+        joinButton.isEnabled = false
+        joinButton.setTitle("Joined ✓", for: .normal)
+        joinButton.backgroundColor = .systemGreen
+        
+        configureLabelsUserHasAlreadyJoined(challenge)
     }
     
 //    private func checkIfUserAlreadyHasJoinedTopChallenge() {
@@ -265,6 +393,11 @@ class TopChallengeCell: UICollectionViewCell {
 //    MARK: - Handlers
     @objc func didPressJoinButton() {
         joinButton.isEnabled = false
-        delegate?.didPressJoinChallenge(in: self, selected: topChallenge)
+        
+        guard let challenge = selfChallenge else {
+            return
+        }
+        
+        delegate?.didPressJoinChallenge(in: self, selected: challenge)
     }
 }

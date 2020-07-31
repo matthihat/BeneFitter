@@ -499,6 +499,10 @@ extension UIAlertController {
 
 extension Notification.Name {
     
+    static var idle: Notification.Name {
+        return .init("SelfChallenge.idle")
+    }
+    
     static var hasNotEntered: Notification.Name {
            return .init("SelfChallenge.hasNotEntered")
        }
@@ -517,6 +521,17 @@ extension Notification.Name {
     
     static var didUpdateProgress: Notification.Name {
         return .init("SelfChallenge.didUpdateProgress")
+    }
+}
+
+extension DateComponentsFormatter {
+    static func format(duration: TimeInterval) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.day, .hour, .minute, .second]
+        formatter.unitsStyle = .abbreviated
+        formatter.maximumUnitCount = 3
+
+        return formatter.string(from: duration)!
     }
 }
 

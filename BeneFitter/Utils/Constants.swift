@@ -63,7 +63,74 @@ enum CharityOrganization: String {
             return "gs://benefitter-76af5.appspot.com/charity_organizations/logotypes/1/HLF-logotyp.png"
         }
     }
+    
+    var logotypeImage: UIImage {
+        switch self {
+        case .hjartOchLungFonden:
+            return #imageLiteral(resourceName: "HLF-logotyp")
+        }
+    }
+    
+    var challengeInfo: String {
+        switch self {
+        case .hjartOchLungFonden:
+            return "Aid the fight against heart and lung disease by joining this challenge"
+        }
+    }
+    
+    var topChallengeType: TypeOfChallenge {
+        switch self {
+        case .hjartOchLungFonden:
+            return .mostCaloriesBurnt
+        }
+    }
+    
+    var topChallengeGoal: Int {
+        switch self {
+        case .hjartOchLungFonden:
+            return 500
+        }
+    }
+    
+    var topChallengeBet: Int {
+        switch self {
+        case .hjartOchLungFonden:
+            return 20
+        }
+    }
+    
+    var topChallengeDuration: Duration {
+        switch self {
+        case .hjartOchLungFonden:
+            return .twentyFourHours
+        }
+    }
 }
+
+//enum TopChallenge {
+//    case hjartOchLungFonden
+//
+//    var goal: Int {
+//        switch self {
+//        case .hjartOchLungFonden:
+//            return 500
+//        }
+//    }
+//
+//    var typeOfChallenge: TypeOfChallenge {
+//        switch self {
+//        case .hjartOchLungFonden:
+//            return .mostCaloriesBurnt
+//        }
+//    }
+//
+//    var duration: Duration {
+//        switch self {
+//        case .hjartOchLungFonden:
+//            return .twentyFourHours
+//        }
+//    }
+//}
 
 enum ChallengeGoal {
     case mostCaloriesBurnt

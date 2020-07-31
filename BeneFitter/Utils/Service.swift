@@ -112,6 +112,70 @@ struct ChallengeService {
             }
         }
     }
+    
+    func checkIfUserHasJoinedTopChallenge(userUid: String, completion: @escaping(Result<SelfChallenge?, Error>) -> Void) {
+        
+        var numberOfChallenges = 0
+        var counter = 0
+        var selfChallenges = [SelfChallenge]()
+        
+            REF_USERS.child(userUid).child("challenges").child("self_challenges").child("active_challenges").observeSingleEvent(of: .value) { (snapshot) in
+                
+                let challengeExists = snapshot.hasChildren()
+                
+                if challengeExists == false {
+                    completion(.success(nil))
+                }
+            
+                guard let challengeIds = snapshot.value as? [String : Int]
+                else { completion(.failure(NetworkError.invalidData)); return }
+                
+                numberOfChallenges = challengeIds.count
+            
+            challengeIds.keys.forEach { (challengeId) in
+                
+                counter += 1
+                
+                REF_SELF_CHALLENGES.child(challengeId).observeSingleEvent(of: .value) { (challengeSnapshot) in
+                    
+                    guard let dict = challengeSnapshot.value as? [String : Any]
+                    else { completion(.failure(NetworkError.invalidData)); return }
+                    
+                    let challenge = Challenge(challengeId: challengeId)
+                    
+                    do {
+                        let selfChallenge = try challenge.selfChallenge(dict: dict)
+                        selfChallenges.append(selfChallenge)
+                        
+                        if numberOfChallenges == counter {
+                            
+                            var topChallenge: SelfChallenge?
+                            
+                            let topChallengeFound = selfChallenges.contains { (chall) -> Bool in
+                                if chall.isTopChallenge {
+                                    topChallenge = chall
+                                    return true
+                                } else {
+                                    topChallenge = nil
+                                    return false
+                                }
+                            }
+                            
+                            switch topChallengeFound {
+                            case true:
+                                completion(.success(topChallenge))
+                            case false:
+                                completion(.success(nil))
+                            }
+                        }
+
+                    } catch {
+                        completion(.failure(error))
+                    }
+                }
+            }
+        }
+    }
 }
 
 struct HKService {

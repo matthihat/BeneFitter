@@ -100,7 +100,7 @@ struct SelfChallenge: SelfChallengeInterface {
     var progress: Int = 0
     let goal: Int
     let notificationCenter: NotificationCenter
-    var state = State.hasNotEntered {
+    var state = State.idle {
         didSet {
             stateDidChange()
         }
@@ -130,6 +130,8 @@ struct SelfChallenge: SelfChallengeInterface {
         self.charityOrganization = charityOrganization
         self.isTopChallenge = isTopChallenge
         self.bettingAmount = bettingAmount
+        
+        stateDidChange()
     }
 
     
@@ -240,6 +242,7 @@ struct SelfChallenge: SelfChallengeInterface {
 
 extension SelfChallenge {
     enum State {
+        case idle
         case hasNotEntered
         case didEnter
         case alreadyEntered
@@ -255,7 +258,7 @@ private extension SelfChallenge {
         
         switch state {
         case .hasNotEntered:
-            Void()
+            notificationCenter.post(name: .hasNotEntered, object: nil, userInfo: challengeInfo)
         case .didEnter:
             notificationCenter.post(name: .didEnter, object: nil, userInfo: challengeInfo)
         case .alreadyEntered:
@@ -264,6 +267,8 @@ private extension SelfChallenge {
             notificationCenter.post(name: .didFinish, object: nil, userInfo: challengeInfo)
         case .didUpdateProgress:
             notificationCenter.post(name: .didUpdateProgress, object: nil, userInfo: challengeInfo)
+        case .idle:
+            notificationCenter.post(name: .idle, object: nil, userInfo: challengeInfo)
         }
     }
 }

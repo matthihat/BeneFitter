@@ -33,5 +33,5 @@ protocol LoginDelegate: class {
 }
 
 protocol TopChallengeCellDelegate {
-    func didPressJoinChallenge(in cell: TopChallengeCell, selected challenge: TopChallengeModel)
+    func didPressJoinChallenge(in cell: TopChallengeCell, selected challenge: SelfChallenge)
 }
