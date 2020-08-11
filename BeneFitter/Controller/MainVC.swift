@@ -231,6 +231,8 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
     
     public func didPressRefresh() {
         
+        simpleAddNotification(hour: 0, minute: 0, second: 10, identifier: "BeneFitter", title: "Hej", body: "Body")
+        
         var newProgress: Int?
         let group = DispatchGroup()
         
@@ -265,6 +267,53 @@ class TopChallengeCVDelegateAndDataSource: NSObject, UICollectionViewDelegate, U
                     SVProgressHUD.showError(withStatus: error.localizedDescription)
                 }
             })
+        }
+    }
+}
+
+
+// MARK: - TODO create DI and add singleton as input param.
+//MARK: - TODO schedule a notification on end date in challenge class
+public func simpleAddNotification(hour: Int, minute: Int, second: Int, identifier: String, title: String, body: String) {
+    // Initialize User Notification Center Object
+    let center = UNUserNotificationCenter.current()
+    
+    center.requestAuthorization(options: [.alert, .sound, .badge]) { (granted, err) in
+        
+        if let error = err {
+            print("DEBUG ", error.localizedDescription)
+            return
+        }
+        
+        if !granted {
+            print("DEBUG no granted permission")
+        }
+    }
+
+    // The content of the Notification
+    let content = UNMutableNotificationContent()
+    content.title = title
+    content.body = body
+    content.sound = .default
+
+    // The selected time to notify the user
+//    var dateComponents = DateComponents()
+//    dateComponents.calendar = Calendar.current
+    let nowPlusSomeTime = DateComponents(calendar: Calendar.current, second: 5)
+//    dateComponents.hour = hour
+//    dateComponents.minute = minute
+//    dateComponents.second = second
+//
+    // The time/repeat trigger
+    let trigger = UNCalendarNotificationTrigger(dateMatching: nowPlusSomeTime, repeats: false)
+
+    // Initializing the Notification Request object to add to the Notification Center
+    let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+
+    // Adding the notification to the center
+    center.add(request) { (error) in
+        if (error) != nil {
+            print(error!.localizedDescription)
         }
     }
 }

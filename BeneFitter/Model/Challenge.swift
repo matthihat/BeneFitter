@@ -109,6 +109,7 @@ struct SelfChallenge: SelfChallengeInterface {
     var charityOrganization: CharityOrganization
     var isTopChallenge: Bool
     var bettingAmount: Int
+    var didFinish = false
     
     init(_ challengeId: String,
          _ challengeType: TypeOfChallenge,
@@ -237,6 +238,10 @@ struct SelfChallenge: SelfChallengeInterface {
             
             completion(.success(true))
         }
+    }
+    
+    mutating func checkIfChallengeHasEnded() {
+        
     }
 }
 

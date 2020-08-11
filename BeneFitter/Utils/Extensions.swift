@@ -529,7 +529,7 @@ extension DateComponentsFormatter {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.day, .hour, .minute, .second]
         formatter.unitsStyle = .abbreviated
-        formatter.maximumUnitCount = 3
+        formatter.maximumUnitCount = 2
 
         return formatter.string(from: duration)!
     }

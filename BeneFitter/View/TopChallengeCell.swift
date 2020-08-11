@@ -318,6 +318,10 @@ class TopChallengeCell: UICollectionViewCell {
         remainingTime = calculateRemainingTime(until: challenge.endDate)
         let remainingTime_AttrString = NSAttributedString(string: remainingTime, attributes: [NSAttributedString.Key.foregroundColor : TextColors.bet.color])
         let remainingTimeText1 = NSMutableAttributedString(attributedString: remainingTime_AttrString)
+        
+        let suffix = NSAttributedString.withFontAndText(font, " left")
+        
+        remainingTimeText1.append(suffix)
 
         remainingTimeLabel.attributedText = remainingTimeText1
     }
